@@ -33,6 +33,12 @@
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="MsgPackage.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PackageTransport.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MSG Package and Unpack System.cpp">
@@ -42,6 +48,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MsgPackage.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PackageTransport.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -33,4 +33,7 @@ public:
 	afx_msg void OnBnClickedConnectBtn();
 	afx_msg void OnBnClickedListenBtn();
 	afx_msg void OnBnClickedMsgsendBtn();
+	CString MsgSendContent;
+	CString SendDetails;
+	CString ReceivedDetails;
 };

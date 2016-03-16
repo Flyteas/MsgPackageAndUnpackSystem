@@ -6,6 +6,7 @@
 #include "MSG Package and Unpack System.h"
 #include "MSG Package and Unpack SystemDlg.h"
 #include "afxdialogex.h"
+#include "MsgPackage.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -49,6 +50,9 @@ END_MESSAGE_MAP()
 
 CMSGPackageandUnpackSystemDlg::CMSGPackageandUnpackSystemDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CMSGPackageandUnpackSystemDlg::IDD, pParent)
+	, MsgSendContent(_T(""))
+	, SendDetails(_T(""))
+	, ReceivedDetails(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -56,6 +60,9 @@ CMSGPackageandUnpackSystemDlg::CMSGPackageandUnpackSystemDlg(CWnd* pParent /*=NU
 void CMSGPackageandUnpackSystemDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Text(pDX, IDC_MsgSend_Edit, MsgSendContent);
+	DDX_Text(pDX, IDC_SendDetails_Edit, SendDetails);
+	DDX_Text(pDX, IDC_ReceivedDetails_Edit, ReceivedDetails);
 }
 
 BEGIN_MESSAGE_MAP(CMSGPackageandUnpackSystemDlg, CDialogEx)
@@ -166,6 +173,8 @@ void CMSGPackageandUnpackSystemDlg::OnBnClickedConnectBtn() //连接按钮
 void CMSGPackageandUnpackSystemDlg::OnBnClickedListenBtn() //监听按钮
 {
 	// TODO: 在此添加控件通知处理程序代码
+	MsgPackage test(NULL,NULL);
+	test.Listen(8888);
 }
 
 
