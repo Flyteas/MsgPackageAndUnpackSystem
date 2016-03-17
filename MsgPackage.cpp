@@ -126,6 +126,7 @@ bool MsgPackage::Listen(int Port) //服务器模式，开启监听
 		SocketServer.Receive(RecBuff,2048);
 		CString RecMsg(RecBuff);
 		MessageBox(0,RecMsg,NULL,0);
+		SocketServer.Close();
 	}
 
 	Sockets.Close();
