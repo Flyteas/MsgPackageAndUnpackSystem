@@ -11,7 +11,8 @@ public:
 	void SetListenPort(int Port); //监听端口setter方法
 	bool StartListen(int Port); //服务器模式，开启一个监听
 	void StopListen(); //服务器模式，停止监听
-	bool ConnectServer(CString IP,int Port); //客户端模式，连接服务器
+	bool StartConnectServer(CString IP,int Port); //客户端模式，连接服务器
+	bool StopConnectServer(); //客户端模式，停止连接服务器
 
 private:
 	CString *MsgSendDetail; //消息封装发送细节

@@ -187,6 +187,16 @@ UINT MsgPackage::ListenThreadFunc(LPVOID MsgPackageObjPointer)
 	return 0;
 }
 
+bool MsgPackage::StartConnectServer(CString IP,int Port) //客户端模式，连接服务器
+{
+	return true;
+}
+
+bool MsgPackage::StopConnectServer() //客户端模式，停止连接服务器
+{
+	return true;
+}
+
 bool MsgPackage::SendPackage(CString PackageData) //发送数据
 {
 	return true;

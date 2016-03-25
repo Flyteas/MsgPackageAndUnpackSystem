@@ -41,9 +41,11 @@ public:
 	CString ReceivedDetails;
 private:
 	MsgPackage *MsgPackageObj;
-	bool CheckListenPortEditVaild(CString ListenPortStr); //判断监听端口输入是否合法
+	bool CheckPortVaild(CString PortStr); //判断端口输入是否合法
+	bool CheckConnectIPVaild(CString IPStr); //判断IP输入是否合法
 public:
 	CButton ListenBtn; //监听按钮
-	CString ListenPortEditText;
-	CButton ConnectBtn;
+	CString PortEditText; //端口输入框文本内容
+	CButton ConnectBtn; //连接按钮
+	CString IPEditStr; //IP输入框文本内容
 };

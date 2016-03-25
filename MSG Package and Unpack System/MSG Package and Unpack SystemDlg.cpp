@@ -52,7 +52,8 @@ CMSGPackageandUnpackSystemDlg::CMSGPackageandUnpackSystemDlg(CWnd* pParent /*=NU
 	, MsgSendContent(_T(""))
 	, SendDetails(_T(""))
 	, ReceivedDetails(_T(""))
-	, ListenPortEditText(_T(""))
+	, PortEditText(_T(""))
+	, IPEditStr(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	this->MsgPackageObj = new MsgPackage(NULL,NULL);
@@ -71,8 +72,9 @@ void CMSGPackageandUnpackSystemDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_SendDetails_Edit, SendDetails);
 	DDX_Text(pDX, IDC_ReceivedDetails_Edit, ReceivedDetails);
 	DDX_Control(pDX, IDC_Listen_Btn, ListenBtn);
-	DDX_Text(pDX, IDC_ListenPort_Edit, ListenPortEditText);
+	DDX_Text(pDX, IDC_ListenPort_Edit, PortEditText);
 	DDX_Control(pDX, IDC_Connect_Btn, ConnectBtn);
+	DDX_Text(pDX, IDC_ConnectIP_Edit, IPEditStr);
 }
 
 BEGIN_MESSAGE_MAP(CMSGPackageandUnpackSystemDlg, CDialogEx)
@@ -176,32 +178,66 @@ HCURSOR CMSGPackageandUnpackSystemDlg::OnQueryDragIcon()
 
 void CMSGPackageandUnpackSystemDlg::OnBnClickedConnectBtn() //连接按钮
 {
-	// TODO: 在此添加控件通知处理程序代码
+	CString ConnectBtnCaption; //连接按钮文本
+	this->ConnectBtn.GetWindowTextW(ConnectBtnCaption); //获取连接按钮文本
+	if(ConnectBtnCaption == "连接")
+	{ //连接服务器
+		UpdateData();
+		if(!this->CheckConnectIPVaild(this->IPEditStr)) //检查输入的IP地址是否合法
+		{
+			MessageBox(_T("请输入正确的IP地址!"),_T("错误"));
+			return;
+		}
+		if(!this->CheckPortVaild(this->PortEditText)) //检查输入的端口是否合法
+		{
+			MessageBox(_T("请输入正确的端口号：1-65535"),_T("错误"));
+			return;
+		}
+		if(!this->MsgPackageObj->StartConnectServer(this->IPEditStr,_ttoi(this->PortEditText))) //连接服务器
+		{
+			MessageBox(_T("连接服务器失败!"),_T("错误"));
+			return;
+		}
+		this->ListenBtn.EnableWindow(false); //客户端模式，禁用监听按钮
+		this->ConnectBtn.SetWindowTextW(_T("停止"));
+		MessageBox(_T("连接服务器成功!"),_T("成功"));
+	}
+	else
+	{ //停止连接服务器
+		if(!this->MsgPackageObj->StopConnectServer()) //关闭连接
+		{
+			MessageBox(_T("关闭服务器连接失败!"),_T("错误"));
+			return;
+		}
+		this->ConnectBtn.SetWindowTextW(_T("连接")); //更新连接按钮文字
+		this->ListenBtn.EnableWindow(true); //启用监听按钮
+	}
 }
 
 
 void CMSGPackageandUnpackSystemDlg::OnBnClickedListenBtn() //监听按钮
 {
 	CString ListenBtnCaption; //监听按钮文本
-	this->ListenBtn.GetWindowTextW(ListenBtnCaption);
+	this->ListenBtn.GetWindowTextW(ListenBtnCaption); //获取监听按钮文本
 	if(ListenBtnCaption == "监听")
-	{
+	{ //开启监听
 		UpdateData();
-		if(!this->CheckListenPortEditVaild(ListenPortEditText)) //检测端口输入合法性
+		if(!this->CheckPortVaild(this->PortEditText)) //检测端口输入合法性
 		{
 			MessageBox(_T("请输入正确的端口号：1-65535"),_T("错误"));
 			return;
 		}
-		if(!this->MsgPackageObj->StartListen(_ttoi(ListenPortEditText))) //开启监听失败
+		if(!this->MsgPackageObj->StartListen(_ttoi(this->PortEditText))) //开启监听失败
 		{
+		MessageBox(_T("服务器模式开启失败!"),_T("错误"));
 			return;
 		}
 		this->ConnectBtn.EnableWindow(false); //服务器端模式,禁用连接按钮
 		this->ListenBtn.SetWindowTextW(_T("停止"));
-		MessageBox(_T("服务器模式开启成功!",_T("成功")));
+		MessageBox(_T("服务器模式开启成功!"),_T("成功"));
 	}
 	else
-	{
+	{ //停止监听
 		this->MsgPackageObj->StopListen();
 		this->ListenBtn.SetWindowTextW(_T("监听"));
 		this->ConnectBtn.EnableWindow(true); //启用连接按钮
@@ -211,19 +247,28 @@ void CMSGPackageandUnpackSystemDlg::OnBnClickedListenBtn() //监听按钮
 
 void CMSGPackageandUnpackSystemDlg::OnBnClickedMsgsendBtn() //发送按钮
 {
-	// TODO: 在此添加控件通知处理程序代码
+	
 }
 
-bool CMSGPackageandUnpackSystemDlg::CheckListenPortEditVaild(CString ListenPortStr) //检查监听端口输入是否合法，合法端口应该是1-65535
+bool CMSGPackageandUnpackSystemDlg::CheckPortVaild(CString PortStr) //检查端口输入是否合法，合法端口应该是1-65535
 {
-	for(int i=0;i<ListenPortStr.GetLength();i++)
+	for(int i=0;i<PortStr.GetLength();i++)
 	{
-		if((int)ListenPortStr.GetAt(i)<48 || (int)ListenPortStr.GetAt(i)>57) //判断每一位是否都是数字
+		if((int)PortStr.GetAt(i)<48 || (int)PortStr.GetAt(i)>57) //判断每一位是否都是数字
 		{
 			return false;
 		}
 	}
-	if(_ttoi(ListenPortStr)<1 || _ttoi(ListenPortStr)>65535) //判断端口号是否在1-65535之间
+	if(_ttoi(PortStr)<1 || _ttoi(PortStr)>65535) //判断端口号是否在1-65535之间
+	{
+		return false;
+	}
+	return true;
+}
+
+bool CMSGPackageandUnpackSystemDlg::CheckConnectIPVaild(CString IPStr) //判断IP输入是否合法
+{
+	if(inet_addr((LPCSTR)(LPCTSTR)IPStr) == INADDR_NONE) //非合法IP地址
 	{
 		return false;
 	}
