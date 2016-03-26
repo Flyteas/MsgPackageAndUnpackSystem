@@ -1,6 +1,6 @@
 #pragma once
 /* 消息包封装与解封类 */
-class MsgPackage : public CSocket
+class MsgPackage
 {
 public:
 	MsgPackage(CString *SendDetailEditValue,CString *ReceivedDetailEditValue);
@@ -13,14 +13,16 @@ public:
 	void StopListen(); //服务器模式，停止监听
 	bool StartConnectServer(CString IP,int Port); //客户端模式，连接服务器
 	bool StopConnectServer(); //客户端模式，停止连接服务器
+	bool SendPackage(CString PackageData); //发送一个数据包
 
 private:
 	CString *MsgSendDetail; //消息封装发送细节
 	CString *MsgReceivedDetail; //消息接收解封细节
 	bool ListenStatus; //监听开启标识
 	int ListenPort;
-	CSocket *ClientSocket;
+	CAsyncSocket *ConnectSocket;
 	bool ClientConnectFlag;
+	CWinThread *ListenThread;
 
 	CString MsgPackageApplication(CString SourceMsg); //应用层封装
 	CString MsgPackageTransport(CString SourceMsg); //传输层封装
@@ -35,6 +37,6 @@ private:
 	CString MsgUnpackPhysical(CString SourceMsg); //物理层解封装
 
 	static UINT ListenThreadFunc(LPVOID Port); //Socket监听线程方法，静态方法，供多线程使用
-	bool SendPackage(CString PackageData); //发送一个数据包
+	bool ConnectServer(CString IP,int Port); //Socket连接服务器方法
 };
 

@@ -61,6 +61,7 @@ CMSGPackageandUnpackSystemDlg::CMSGPackageandUnpackSystemDlg(CWnd* pParent /*=NU
 
 CMSGPackageandUnpackSystemDlg::~CMSGPackageandUnpackSystemDlg() //析构函数
 {
+	this->MsgPackageObj->StopListen();
 	delete this->MsgPackageObj;
 	this->MsgPackageObj = NULL;
 }
@@ -179,7 +180,7 @@ HCURSOR CMSGPackageandUnpackSystemDlg::OnQueryDragIcon()
 void CMSGPackageandUnpackSystemDlg::OnBnClickedConnectBtn() //连接按钮
 {
 	CString ConnectBtnCaption; //连接按钮文本
-	this->ConnectBtn.GetWindowTextW(ConnectBtnCaption); //获取连接按钮文本
+	this->ConnectBtn.GetWindowText(ConnectBtnCaption); //获取连接按钮文本
 	if(ConnectBtnCaption == "连接")
 	{ //连接服务器
 		UpdateData();
@@ -199,7 +200,7 @@ void CMSGPackageandUnpackSystemDlg::OnBnClickedConnectBtn() //连接按钮
 			return;
 		}
 		this->ListenBtn.EnableWindow(false); //客户端模式，禁用监听按钮
-		this->ConnectBtn.SetWindowTextW(_T("停止"));
+		this->ConnectBtn.SetWindowText(_T("停止"));
 		MessageBox(_T("连接服务器成功!"),_T("成功"));
 	}
 	else
@@ -209,7 +210,7 @@ void CMSGPackageandUnpackSystemDlg::OnBnClickedConnectBtn() //连接按钮
 			MessageBox(_T("关闭服务器连接失败!"),_T("错误"));
 			return;
 		}
-		this->ConnectBtn.SetWindowTextW(_T("连接")); //更新连接按钮文字
+		this->ConnectBtn.SetWindowText(_T("连接")); //更新连接按钮文字
 		this->ListenBtn.EnableWindow(true); //启用监听按钮
 	}
 }
@@ -218,7 +219,7 @@ void CMSGPackageandUnpackSystemDlg::OnBnClickedConnectBtn() //连接按钮
 void CMSGPackageandUnpackSystemDlg::OnBnClickedListenBtn() //监听按钮
 {
 	CString ListenBtnCaption; //监听按钮文本
-	this->ListenBtn.GetWindowTextW(ListenBtnCaption); //获取监听按钮文本
+	this->ListenBtn.GetWindowText(ListenBtnCaption); //获取监听按钮文本
 	if(ListenBtnCaption == "监听")
 	{ //开启监听
 		UpdateData();
@@ -233,13 +234,13 @@ void CMSGPackageandUnpackSystemDlg::OnBnClickedListenBtn() //监听按钮
 			return;
 		}
 		this->ConnectBtn.EnableWindow(false); //服务器端模式,禁用连接按钮
-		this->ListenBtn.SetWindowTextW(_T("停止"));
+		this->ListenBtn.SetWindowText(_T("停止"));
 		MessageBox(_T("服务器模式开启成功!"),_T("成功"));
 	}
 	else
 	{ //停止监听
 		this->MsgPackageObj->StopListen();
-		this->ListenBtn.SetWindowTextW(_T("监听"));
+		this->ListenBtn.SetWindowText(_T("监听"));
 		this->ConnectBtn.EnableWindow(true); //启用连接按钮
 	}
 }
@@ -247,7 +248,11 @@ void CMSGPackageandUnpackSystemDlg::OnBnClickedListenBtn() //监听按钮
 
 void CMSGPackageandUnpackSystemDlg::OnBnClickedMsgsendBtn() //发送按钮
 {
-	
+	UpdateData();
+	if(!this->MsgPackageObj->SendPackage(this->MsgSendContent)) //发送数据
+	{
+		MessageBox(_T("发送失败!请检查是否已建立连接!"),_T("错误"));
+	}
 }
 
 bool CMSGPackageandUnpackSystemDlg::CheckPortVaild(CString PortStr) //检查端口输入是否合法，合法端口应该是1-65535

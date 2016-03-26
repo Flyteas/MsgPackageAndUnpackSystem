@@ -99,7 +99,6 @@ void MsgPackage::SetListenPort(int Port)
 
 bool MsgPackage::StartListen(int Port) //服务器模式，开启监听
 {
-	CWinThread *ListenThread;
 	this->ListenStatus = true;
 	this->SetListenPort(Port);
 	ListenThread = AfxBeginThread(this->ListenThreadFunc,(LPVOID)this); //创建监听线程
@@ -112,19 +111,14 @@ bool MsgPackage::StartListen(int Port) //服务器模式，开启监听
 
 void MsgPackage::StopListen() //服务器模式，关闭监听
 {
+	WaitForSingleObject(ListenThread,INFINITE); //等待监听线程结束
 	this->ListenStatus = false;
-	if(this->ClientSocket != NULL)
-	{
-		this->ClientSocket->Close();
-		delete this->ClientSocket;
-		this->ClientSocket = NULL;
-	}
 }
 
 UINT MsgPackage::ListenThreadFunc(LPVOID MsgPackageObjPointer)
 {
 	MsgPackage *MsgPackageObj = (MsgPackage*)MsgPackageObjPointer;
-	CSocket ServerSocket;
+	CAsyncSocket ServerSocket;
 	if(!AfxSocketInit()) //初始化Socket
 	{
 		MessageBoxA(0,"初始化Socket失败!","错误",0);
@@ -152,38 +146,43 @@ UINT MsgPackage::ListenThreadFunc(LPVOID MsgPackageObjPointer)
 	{
 		if(!MsgPackageObj->ClientConnectFlag) //如果没有客户端已连接，则Accept客户端的连接
 		{
-			MsgPackageObj->ClientSocket = new CSocket();
-			if(!ServerSocket.Accept(*MsgPackageObj->ClientSocket)) //Accept客户端失败
+			MsgPackageObj->ConnectSocket = new CAsyncSocket();
+			if(ServerSocket.Accept(*MsgPackageObj->ConnectSocket)) //接收到一个客户端连接
 			{
-				MessageBoxA(0,"Accept connect error!","Error",0);
-				break;
+				MsgPackageObj->ClientConnectFlag = true;
 			}
-			MsgPackageObj->ClientConnectFlag = true;
+			continue;
 		}
 		char RecBuff[2048]; //接收数据缓冲池
 		memset(RecBuff,0,2048); //初始化缓冲池
-		if(MsgPackageObj->ClientSocket->Receive(RecBuff,2048) <= 0) //连接错误
+		int ReceiveResult;
+		ReceiveResult = MsgPackageObj->ConnectSocket->Receive(RecBuff,2048);
+		if(ReceiveResult < -1 || ReceiveResult == 0) //连接错误
 		{
 			MsgPackageObj->ClientConnectFlag = false;
-			if(MsgPackageObj->ClientSocket != NULL)
+			if(MsgPackageObj->ConnectSocket != NULL)
 			{
-				MsgPackageObj->ClientSocket->Close();
-				delete MsgPackageObj->ClientSocket;
-				MsgPackageObj->ClientSocket = NULL;
+				MsgPackageObj->ConnectSocket->Close();
+				delete MsgPackageObj->ConnectSocket;
+				MsgPackageObj->ConnectSocket = NULL;
 			}
+			continue;
+		}
+		else if(ReceiveResult == -1) //非阻塞模式对方为发送消息则返回-1
+		{
 			continue;
 		}
 		CString RecMsg(RecBuff);
 		MessageBox(0,RecMsg,NULL,0);
 	}
-	if(MsgPackageObj->ClientSocket != NULL)
+	if(MsgPackageObj->ConnectSocket != NULL)
 	{
-		MsgPackageObj->ClientSocket->Close();
-		delete MsgPackageObj->ClientSocket;
-		MsgPackageObj->ClientSocket = NULL;
+		MsgPackageObj->ConnectSocket->Close();
+		delete MsgPackageObj->ConnectSocket;
+		MsgPackageObj->ConnectSocket = NULL;
 	}
-	ServerSocket.Close();
 	MsgPackageObj->ClientConnectFlag = false;
+	ServerSocket.Close();
 	return 0;
 }
 
@@ -199,5 +198,13 @@ bool MsgPackage::StopConnectServer() //客户端模式，停止连接服务器
 
 bool MsgPackage::SendPackage(CString PackageData) //发送数据
 {
+	if(this->ConnectSocket == NULL)
+	{
+		return false;
+	}
+	if(this->ConnectSocket->Send(PackageData,PackageData.GetLength()) <0 ) //发送数据
+	{
+		return false;
+	}
 	return true;
 }
