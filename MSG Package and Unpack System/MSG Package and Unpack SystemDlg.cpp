@@ -56,14 +56,14 @@ CMSGPackageandUnpackSystemDlg::CMSGPackageandUnpackSystemDlg(CWnd* pParent /*=NU
 	, IPEditStr(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
-	this->MsgPackageObj = new MsgPackage(&SendDetails,&ReceivedDetails,this);
+	this->MsgTransportObj = new MsgTransport(&SendDetails,&ReceivedDetails,this);
 }
 
 CMSGPackageandUnpackSystemDlg::~CMSGPackageandUnpackSystemDlg() //析构函数
 {
-	this->MsgPackageObj->StopListen();
-	delete this->MsgPackageObj;
-	this->MsgPackageObj = NULL;
+	this->MsgTransportObj->StopListen();
+	delete this->MsgTransportObj;
+	this->MsgTransportObj = NULL;
 }
 
 void CMSGPackageandUnpackSystemDlg::DoDataExchange(CDataExchange* pDX)
@@ -194,7 +194,7 @@ void CMSGPackageandUnpackSystemDlg::OnBnClickedConnectBtn() //连接按钮
 			MessageBox(_T("请输入正确的端口号：1-65535"),_T("错误"));
 			return;
 		}
-		if(!this->MsgPackageObj->StartConnectServer(this->IPEditStr,_ttoi(this->PortEditText))) //连接服务器
+		if(!this->MsgTransportObj->StartConnectServer(this->IPEditStr,_ttoi(this->PortEditText))) //连接服务器
 		{
 			MessageBox(_T("连接服务器失败!"),_T("错误"));
 			return;
@@ -204,7 +204,7 @@ void CMSGPackageandUnpackSystemDlg::OnBnClickedConnectBtn() //连接按钮
 	}
 	else
 	{ //停止连接服务器
-		this->MsgPackageObj->StopConnectServer(); //关闭连接
+		this->MsgTransportObj->StopConnectServer(); //关闭连接
 		this->ConnectBtn.SetWindowText(_T("连接")); //更新连接按钮文字
 		this->ListenBtn.EnableWindow(true); //启用监听按钮
 	}
@@ -223,7 +223,7 @@ void CMSGPackageandUnpackSystemDlg::OnBnClickedListenBtn() //监听按钮
 			MessageBox(_T("请输入正确的端口号：1-65535"),_T("错误"));
 			return;
 		}
-		if(!this->MsgPackageObj->StartListen(_ttoi(this->PortEditText))) //开启监听失败
+		if(!this->MsgTransportObj->StartListen(_ttoi(this->PortEditText))) //开启监听失败
 		{
 		MessageBox(_T("服务器模式开启失败!"),_T("错误"));
 			return;
@@ -234,7 +234,7 @@ void CMSGPackageandUnpackSystemDlg::OnBnClickedListenBtn() //监听按钮
 	}
 	else
 	{ //停止监听
-		this->MsgPackageObj->StopListen();
+		this->MsgTransportObj->StopListen();
 		this->ListenBtn.SetWindowText(_T("监听"));
 		this->ConnectBtn.EnableWindow(true); //启用连接按钮
 	}
@@ -244,7 +244,7 @@ void CMSGPackageandUnpackSystemDlg::OnBnClickedListenBtn() //监听按钮
 void CMSGPackageandUnpackSystemDlg::OnBnClickedMsgsendBtn() //发送按钮
 {
 	UpdateData();
-	if(!this->MsgPackageObj->SendPackage(this->MsgSendContent)) //发送数据
+	if(!this->MsgTransportObj->SendPackage(this->MsgSendContent)) //发送数据
 	{
 		MessageBox(_T("发送失败!请检查是否已建立连接!"),_T("错误"));
 	}

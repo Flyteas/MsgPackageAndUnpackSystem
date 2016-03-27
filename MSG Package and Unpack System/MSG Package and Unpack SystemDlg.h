@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "MsgPackage.h"
+#include "MsgTransport.h"
 #include "afxwin.h"
 
 
@@ -40,7 +40,7 @@ public:
 	CString SendDetails;
 	CString ReceivedDetails;
 private:
-	MsgPackage *MsgPackageObj;
+	MsgTransport *MsgTransportObj;
 	bool CheckPortVaild(CString PortStr); //判断端口输入是否合法
 	bool CheckConnectIPVaild(CString IPStr); //判断IP输入是否合法
 public:
