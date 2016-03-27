@@ -56,7 +56,7 @@ CMSGPackageandUnpackSystemDlg::CMSGPackageandUnpackSystemDlg(CWnd* pParent /*=NU
 	, IPEditStr(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
-	this->MsgPackageObj = new MsgPackage(NULL,NULL);
+	this->MsgPackageObj = new MsgPackage(&SendDetails,&ReceivedDetails,this);
 }
 
 CMSGPackageandUnpackSystemDlg::~CMSGPackageandUnpackSystemDlg() //析构函数
@@ -201,15 +201,10 @@ void CMSGPackageandUnpackSystemDlg::OnBnClickedConnectBtn() //连接按钮
 		}
 		this->ListenBtn.EnableWindow(false); //客户端模式，禁用监听按钮
 		this->ConnectBtn.SetWindowText(_T("停止"));
-		MessageBox(_T("连接服务器成功!"),_T("成功"));
 	}
 	else
 	{ //停止连接服务器
-		if(!this->MsgPackageObj->StopConnectServer()) //关闭连接
-		{
-			MessageBox(_T("关闭服务器连接失败!"),_T("错误"));
-			return;
-		}
+		this->MsgPackageObj->StopConnectServer(); //关闭连接
 		this->ConnectBtn.SetWindowText(_T("连接")); //更新连接按钮文字
 		this->ListenBtn.EnableWindow(true); //启用监听按钮
 	}
