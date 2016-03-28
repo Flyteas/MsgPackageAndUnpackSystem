@@ -85,6 +85,7 @@ BEGIN_MESSAGE_MAP(CMSGPackageandUnpackSystemDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_Connect_Btn, &CMSGPackageandUnpackSystemDlg::OnBnClickedConnectBtn)
 	ON_BN_CLICKED(IDC_Listen_Btn, &CMSGPackageandUnpackSystemDlg::OnBnClickedListenBtn)
 	ON_BN_CLICKED(IDC_MsgSend_Btn, &CMSGPackageandUnpackSystemDlg::OnBnClickedMsgsendBtn)
+	ON_BN_CLICKED(IDC_Clear_Btn, &CMSGPackageandUnpackSystemDlg::OnBnClickedClearBtn)
 END_MESSAGE_MAP()
 
 
@@ -244,6 +245,10 @@ void CMSGPackageandUnpackSystemDlg::OnBnClickedListenBtn() //¼àÌý°´Å¥
 void CMSGPackageandUnpackSystemDlg::OnBnClickedMsgsendBtn() //·¢ËÍ°´Å¥
 {
 	UpdateData();
+	if(this->MsgSendContent.IsEmpty()) //Èç¹û·¢ËÍÄÚÈÝÎª¿Õ
+	{
+		return;
+	}
 	if(!this->MsgTransportObj->SendPackage(this->MsgSendContent)) //·¢ËÍÊý¾Ý
 	{
 		MessageBox(_T("·¢ËÍÊ§°Ü!Çë¼ì²éÊÇ·ñÒÑ½¨Á¢Á¬½Ó!"),_T("´íÎó"));
@@ -273,4 +278,11 @@ bool CMSGPackageandUnpackSystemDlg::CheckConnectIPVaild(CString IPStr) //ÅÐ¶ÏIPÊ
 		return false;
 	}
 	return true;
+}
+
+void CMSGPackageandUnpackSystemDlg::OnBnClickedClearBtn() //Çå¿Õ°´Å¥
+{
+	this->SendDetails = "";
+	this->ReceivedDetails = "";
+	UpdateData(false);
 }

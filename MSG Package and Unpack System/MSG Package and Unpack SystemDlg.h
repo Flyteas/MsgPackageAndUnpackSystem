@@ -48,4 +48,5 @@ public:
 	CString PortEditText; //端口输入框文本内容
 	CButton ConnectBtn; //连接按钮
 	CString IPEditStr; //IP输入框文本内容
+	afx_msg void OnBnClickedClearBtn();
 };
