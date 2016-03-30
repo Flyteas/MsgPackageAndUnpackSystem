@@ -24,6 +24,8 @@ private:
 	CString MsgUnpackNetwork(CString SourceMsg); //网络层解封装
 	CString MsgUnpackDatalink(CString SourveMsg); //数据链路层解封装
 	CString MsgUnpackPhysical(CString SourceMsg); //物理层解封装
+	
+	int CRC32(CString& ComputeStr); //CRC校验
 
 	void AddMsgSendDetails(CString DetailsText); //添加消息到消息发送详情框显示
 	void AddMsgReceiveDetails(CString DetailsText); //添加消息到消息接收详情框显示

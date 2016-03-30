@@ -100,6 +100,34 @@ CString MsgPackage::MsgUnpackPhysical(CString SourceMsg) //物理层解封装方法
 	return SourceMsg;
 }
 
+int MsgPackage::CRC32(CString& ComputeStr) //CRC32校验
+{
+	int StrLen;
+	unsigned long CRC32Table[256];
+    int i,j;
+    unsigned long crc;
+    for (i = 0; i < 256; i++) //生成CRC码表
+	{
+        crc = i;
+        for (j = 0; j < 8; j++) 
+		{
+            if (crc & 1)
+                crc = (crc >> 1) ^ 0xEDB88320; //标准取值，和Winrar一致
+            else
+                crc >>= 1;
+        }
+        CRC32Table[i] = crc;
+    }
+    ULONG CRCResult(0xffffffff);
+    unsigned char* buffer;
+    StrLen = ComputeStr.GetLength();
+    buffer = (unsigned char*)(LPCTSTR)ComputeStr;
+    while(StrLen--)
+        CRCResult = (CRCResult >> 8) ^ CRC32Table[(CRCResult & 0xFF) ^ *buffer++];
+    return CRCResult^0xffffffff;
+}
+
+
 void MsgPackage::AddMsgSendDetails(CString DetailsText) //添加消息到消息发送详情框显示
 {
 	DetailsText = "[" + CTime::GetCurrentTime().Format("%H:%M:%S") + "]  " + DetailsText + "\r\n";
