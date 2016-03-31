@@ -67,7 +67,11 @@ CString MsgPackage::MsgPackageNetwork(CString SourceMsg) //网络层封装方法
 
 CString MsgPackage::MsgPackageDatalink(CString SourceMsg) //数据链路层封装方法
 {
-	return SourceMsg;
+	CString PackagedMsg;
+	CString CRC32Value;
+	CRC32Value.Format("%X",this->CRC32(SourceMsg)); //计算CRC32值，大写16禁止
+	PackagedMsg = SourceMsg + "|" + CRC32Value;
+	return PackagedMsg;
 }
 
 CString MsgPackage::MsgPackagePhysical(CString SourceMsg) //物理层封装方法
@@ -105,25 +109,28 @@ int MsgPackage::CRC32(CString& ComputeStr) //CRC32校验
 	int StrLen;
 	unsigned long CRC32Table[256];
     int i,j;
-    unsigned long crc;
-    for (i = 0; i < 256; i++) //生成CRC码表
+    unsigned long CRCNum;
+	ULONG CRCResult(0xffffffff);
+    unsigned char* StrBuff;
+    for (i=0;i<256;i++) //生成CRC码表
 	{
-        crc = i;
-        for (j = 0; j < 8; j++) 
+        CRCNum = i;
+        for (j=0;j<8;j++) 
 		{
-            if (crc & 1)
-                crc = (crc >> 1) ^ 0xEDB88320; //标准取值，和Winrar一致
+            if (CRCNum & 1)
+                CRCNum = (CRCNum >> 1) ^ 0xEDB88320; //标准取值，和Winrar一致
             else
-                crc >>= 1;
+                CRCNum >>= 1;
         }
-        CRC32Table[i] = crc;
+        CRC32Table[i] = CRCNum;
     }
-    ULONG CRCResult(0xffffffff);
-    unsigned char* buffer;
+
     StrLen = ComputeStr.GetLength();
-    buffer = (unsigned char*)(LPCTSTR)ComputeStr;
-    while(StrLen--)
-        CRCResult = (CRCResult >> 8) ^ CRC32Table[(CRCResult & 0xFF) ^ *buffer++];
+    StrBuff = (unsigned char*)(LPCTSTR)ComputeStr;
+    while(StrLen--) //计算CRC值
+	{
+        CRCResult = (CRCResult >> 8) ^ CRC32Table[(CRCResult & 0xFF) ^ *StrBuff++];
+	}
     return CRCResult^0xffffffff;
 }
 
