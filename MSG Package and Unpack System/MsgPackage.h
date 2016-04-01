@@ -26,7 +26,8 @@ private:
 	CString MsgUnpackPhysical(CString SourceMsg); //物理层解封装
 	
 	int CRC32(CString& ComputeStr); //CRC校验
-
+	CString CStringToBinary(CString SourceMsg); //将CString类型的数据转换成二进制表示
+	CString BinaryToCString(CString SourceMsg); //将二进制表示的数据转换成CString
 	void AddMsgSendDetails(CString DetailsText); //添加消息到消息发送详情框显示
 	void AddMsgReceiveDetails(CString DetailsText); //添加消息到消息接收详情框显示
 };

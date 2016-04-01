@@ -76,7 +76,9 @@ CString MsgPackage::MsgPackageDatalink(CString SourceMsg) //数据链路层封装方法
 
 CString MsgPackage::MsgPackagePhysical(CString SourceMsg) //物理层封装方法
 {
-	return SourceMsg;
+	CString PackagedMsg;
+	PackagedMsg = this->CStringToBinary(SourceMsg); //二进制序列化
+	return PackagedMsg;
 }
 
 CString MsgPackage::MsgUnpackApplication(CString SourceMsg) //应用层解封装方法
@@ -101,7 +103,9 @@ CString MsgPackage::MsgUnpackDatalink(CString SourceMsg) //数据链路层解封装方法
 
 CString MsgPackage::MsgUnpackPhysical(CString SourceMsg) //物理层解封装方法
 {
-	return SourceMsg;
+	CString UnpackedMsg;
+	UnpackedMsg = this->BinaryToCString(SourceMsg); //二进制反序列化;
+	return UnpackedMsg;
 }
 
 int MsgPackage::CRC32(CString& ComputeStr) //CRC32校验
@@ -134,6 +138,52 @@ int MsgPackage::CRC32(CString& ComputeStr) //CRC32校验
     return CRCResult^0xffffffff;
 }
 
+CString MsgPackage::CStringToBinary(CString SourceMsg) //将CString类型的数据转换成二进制表示
+{
+	CString ResultStr;
+	int Result;
+	int ResultSize;
+	char* SourceMsgCharArray;
+	SourceMsgCharArray = (LPSTR)SourceMsg.GetBuffer();
+    int i=0;
+    for(int i=0;SourceMsgCharArray[i]!=0;i++)
+	{
+
+        ResultStr.Format(ResultStr+"%02X",(unsigned char)SourceMsgCharArray[i]);
+    }
+	SourceMsg.ReleaseBuffer();
+	Result = atoi(ResultStr);
+	ResultSize = ResultStr.GetLength()*4;
+	ResultStr = "";
+	_itoa_s(Result,ResultStr.GetBuffer(),ResultSize,2);
+	return ResultStr;
+}
+
+CString MsgPackage::BinaryToCString(CString SourceMsg) //将二进制表示的数据转换成CString
+{
+	int SourceBinary;
+	CString Result;
+	int ResultSize;
+	char* ResultCharArray;
+	unsigned int ResultCharInt;
+	int i;
+	ResultSize = ResultSize = SourceMsg.GetLength()/4;
+	SourceBinary = strtol(SourceMsg,NULL,2);
+	SourceMsg = "";
+	_itoa_s(SourceBinary,SourceMsg.GetBuffer(),ResultSize,16); //二进制转十六进制
+	ResultCharArray = (char*)malloc(SourceMsg.GetLength()/2+1); //分配内存
+	i = 0;
+	for(int j=0;j<SourceMsg.GetLength();j=j+2)
+	{
+		ResultCharInt = strtol(SourceMsg.Mid(j,2),NULL,16); //按长度为2进行十六进制分割
+        ResultCharArray[i] = (char)ResultCharInt; //转换成字符
+		i++;
+	}
+	ResultCharArray[i] = 0;
+	Result.Format("%s",ResultCharArray);
+	SourceMsg.ReleaseBuffer();
+	return Result;
+}
 
 void MsgPackage::AddMsgSendDetails(CString DetailsText) //添加消息到消息发送详情框显示
 {
