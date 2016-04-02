@@ -69,7 +69,7 @@ CString MsgPackage::MsgPackageDatalink(CString SourceMsg) //Êı¾İÁ´Â·²ã·â×°·½·¨
 {
 	CString PackagedMsg;
 	CString CRC32Value;
-	CRC32Value.Format("%X",this->CRC32(SourceMsg)); //¼ÆËãCRC32Öµ£¬´óĞ´16½ûÖ¹
+	CRC32Value.Format("%X",this->CRC32(SourceMsg)); //¼ÆËãCRC32Öµ£¬´óĞ´16½øÖÆ
 	PackagedMsg = SourceMsg + "|" + CRC32Value;
 	return PackagedMsg;
 }
@@ -141,36 +141,26 @@ int MsgPackage::CRC32(CString& ComputeStr) //CRC32Ğ£Ñé
 CString MsgPackage::CStringToBinary(CString SourceMsg) //½«CStringÀàĞÍµÄÊı¾İ×ª»»³É¶ş½øÖÆ±íÊ¾
 {
 	CString ResultStr;
-	int Result;
-	int ResultSize;
 	char* SourceMsgCharArray;
 	SourceMsgCharArray = (LPSTR)SourceMsg.GetBuffer();
     int i=0;
     for(int i=0;SourceMsgCharArray[i]!=0;i++)
 	{
 
-        ResultStr.Format(ResultStr+"%02X",(unsigned char)SourceMsgCharArray[i]);
+        ResultStr.Format(ResultStr+"%02X",(unsigned char)SourceMsgCharArray[i]); //½«×Ö·û´®×ª»»³ÉÊ®Áù½øÖÆ±íÊ¾
     }
 	SourceMsg.ReleaseBuffer();
-	Result = atoi(ResultStr);
-	ResultSize = ResultStr.GetLength()*4;
-	ResultStr = "";
-	_itoa_s(Result,ResultStr.GetBuffer(),ResultSize,2);
+	ResultStr = this->HexStrToBinStr(ResultStr); //Ê®Áù½øÖÆ×Ö·û´®×ª³É¶ş½øÖÆ×Ö·û´®
 	return ResultStr;
 }
 
 CString MsgPackage::BinaryToCString(CString SourceMsg) //½«¶ş½øÖÆ±íÊ¾µÄÊı¾İ×ª»»³ÉCString
 {
-	int SourceBinary;
 	CString Result;
-	int ResultSize;
 	char* ResultCharArray;
 	unsigned int ResultCharInt;
 	int i;
-	ResultSize = ResultSize = SourceMsg.GetLength()/4;
-	SourceBinary = strtol(SourceMsg,NULL,2);
-	SourceMsg = "";
-	_itoa_s(SourceBinary,SourceMsg.GetBuffer(),ResultSize,16); //¶ş½øÖÆ×ªÊ®Áù½øÖÆ
+	SourceMsg = this->BinStrToHexStr(SourceMsg); //¶ş½øÖÆ×Ö·û´®×ªÊ®Áù½øÖÆ×Ö·û´®
 	ResultCharArray = (char*)malloc(SourceMsg.GetLength()/2+1); //·ÖÅäÄÚ´æ
 	i = 0;
 	for(int j=0;j<SourceMsg.GetLength();j=j+2)
@@ -181,8 +171,80 @@ CString MsgPackage::BinaryToCString(CString SourceMsg) //½«¶ş½øÖÆ±íÊ¾µÄÊı¾İ×ª»»³
 	}
 	ResultCharArray[i] = 0;
 	Result.Format("%s",ResultCharArray);
-	SourceMsg.ReleaseBuffer();
 	return Result;
+}
+
+CString MsgPackage::HexStrToBinStr(CString HexStr) //Ê®Áù½øÖÆ×Ö·û´®×ª³É¶ş½øÖÆ×Ö·û´®
+{
+	CString BinStr;
+	HexStr.MakeUpper(); //½«Ê®Áù½øÖÆ×Ö·û´®×ª»»³É´óĞ´
+	for(int i=0;i<HexStr.GetLength();i++)
+	{
+		switch (HexStr.GetAt(i))
+		{
+		case '0':
+			BinStr += "0000";
+			break;
+		case '1':
+			BinStr += "0001";
+			break;
+		case '2':
+			BinStr += "0010";
+			break;
+		case '3':
+			BinStr += "0011";
+			break;
+		case '4':
+			BinStr += "0100";
+			break;
+		case '5':
+			BinStr += "0101";
+			break;
+		case '6':
+			BinStr += "0110";
+			break;
+		case '7':
+			BinStr += "0111";
+			break;
+		case '8':
+			BinStr += "1000";
+			break;
+		case '9':
+			BinStr += "1001";
+			break;
+		case 'A':
+			BinStr += "1010";
+			break;
+		case 'B':
+			BinStr += "1011";
+			break;
+		case 'C':
+			BinStr += "1100";
+			break;
+		case 'D':
+			BinStr += "1101";
+			break;
+		case 'E':
+			BinStr += "1110";
+			break;
+		case 'F':
+			BinStr += "1111";
+			break;
+		default:
+			break;
+		}
+	}
+	return BinStr;
+}
+
+CString MsgPackage::BinStrToHexStr(CString BinStr) //¶ş½øÖÆ×Ö·û´®×ªÊ®Áù½øÖÆ×Ö·û´®
+{
+	CString HexStr;
+	for(int i=0;i<BinStr.GetLength();i=i+4)
+	{
+		HexStr.Format(HexStr+"%X",strtol(BinStr.Mid(i,4),NULL,2));
+	}
+	return HexStr;
 }
 
 void MsgPackage::AddMsgSendDetails(CString DetailsText) //Ìí¼ÓÏûÏ¢µ½ÏûÏ¢·¢ËÍÏêÇé¿òÏÔÊ¾

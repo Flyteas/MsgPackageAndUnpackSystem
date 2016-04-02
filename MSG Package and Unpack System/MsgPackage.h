@@ -28,6 +28,8 @@ private:
 	int CRC32(CString& ComputeStr); //CRC校验
 	CString CStringToBinary(CString SourceMsg); //将CString类型的数据转换成二进制表示
 	CString BinaryToCString(CString SourceMsg); //将二进制表示的数据转换成CString
+	CString HexStrToBinStr(CString HexStr); //十六进制字符串转二进制字符串
+	CString BinStrToHexStr(CString BinStr); //二进制字符串转十六进制字符串
 	void AddMsgSendDetails(CString DetailsText); //添加消息到消息发送详情框显示
 	void AddMsgReceiveDetails(CString DetailsText); //添加消息到消息接收详情框显示
 };
