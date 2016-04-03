@@ -98,7 +98,15 @@ CString MsgPackage::MsgUnpackNetwork(CString SourceMsg) //网络层解封装方法
 
 CString MsgPackage::MsgUnpackDatalink(CString SourceMsg) //数据链路层解封装方法
 {
-	return SourceMsg;
+	CString UnpackedMsg;
+	unsigned int CRC32Vaule;
+	UnpackedMsg = SourceMsg.Mid(0,SourceMsg.Find('|')); //包数据段
+	CRC32Vaule = strtol(SourceMsg.Mid(SourceMsg.Find('|')+1),NULL,16); //CRC32数据段,十六进制
+	if(this->CRC32(UnpackedMsg) != CRC32Vaule) //CRC32校验失败
+	{
+		this->AddMsgReceiveDetails("CRC32 校验失败");
+	}
+	return UnpackedMsg;
 }
 
 CString MsgPackage::MsgUnpackPhysical(CString SourceMsg) //物理层解封装方法
