@@ -1,5 +1,11 @@
 #include "stdafx.h"
 #include "MsgPackage.h"
+#include <aes.h>
+#include <modes.h>
+#include <filters.h>
+#include <hex.h>
+
+#pragma comment (lib,"cryptlib.lib")
 
 
 MsgPackage::MsgPackage(CString *SendDetailEditValue,CString *ReceivedDetailEditValue,CDialogEx* MainWindowDlg) //构造函数，初始化数据
@@ -52,6 +58,9 @@ bool MsgPackage::UnpackMessage(CString SourceMsg) //解封装数据
 
 CString MsgPackage::MsgPackageApplication(CString SourceMsg) //应用层封装方法
 {
+	CString PackagedMsg;
+	PackagedMsg = "HTTP/1.1" + '|' + SourceMsg; //APP头信息
+
 	return SourceMsg;
 }
 
@@ -144,6 +153,44 @@ int MsgPackage::CRC32(CString& ComputeStr) //CRC32校验
         CRCResult = (CRCResult >> 8) ^ CRC32Table[(CRCResult & 0xFF) ^ *StrBuff++];
 	}
     return CRCResult^0xffffffff;
+}
+
+CString MsgPackage::AESEncrypt(CString AESKey,CString SourceStr) //AES加密
+{
+	std::string EncryptedStr;
+	std::string EncryptedStrHex;
+	CString EncryptedResult;
+	byte AESKeyByte[CryptoPP::AES::DEFAULT_KEYLENGTH];
+	byte *EncryptedStrByte;
+	for (int i=0;i<CryptoPP::AES::DEFAULT_KEYLENGTH;i++) 
+	{ 
+		AESKeyByte[i] = AESKey.GetAt(i); 
+	}
+	CryptoPP::ECB_Mode<CryptoPP::AES>::Encryption ECBEncryption(AESKeyByte,CryptoPP::AES::DEFAULT_KEYLENGTH);
+	CryptoPP::StringSource(SourceStr,true,new CryptoPP::StreamTransformationFilter(ECBEncryption,new CryptoPP::StringSink(EncryptedStr)));
+	for(int i=0;i<EncryptedStr.size();i++)     //转换成HEX格式
+	{  
+		char HexChar[3] = {0};  
+		sprintf_s(HexChar,"%02X",static_cast<byte>(EncryptedStr[i]));  
+		EncryptedStrHex += HexChar;  
+	}
+	CryptoPP::HexEncoder HexEncoderObj;
+	EncryptedStrByte = (byte*)EncryptedStr.c_str();
+	HexEncoderObj.Put(EncryptedStrByte,sizeof(*EncryptedStrByte));
+	HexEncoderObj.MessageEnd();
+	/* size = HexEncoderObj.MaxRetrievable();
+if(size)
+{
+    encoded.resize(size);		
+    encoder.Get((byte*)encoded.data(), encoded.size());
+}*/
+
+	EncryptedResult.Format("%s",EncryptedStrHex);
+}
+
+CString MsgPackage::AESDecrypt(CString AESKey,CString SourceStr) //AES解密
+{
+	
 }
 
 CString MsgPackage::CStringToBinary(CString SourceMsg) //将CString类型的数据转换成二进制表示

@@ -26,6 +26,8 @@ private:
 	CString MsgUnpackPhysical(CString SourceMsg); //物理层解封装
 	
 	int CRC32(CString& ComputeStr); //CRC校验
+	CString AESEncrypt(CString AESKey,CString SourceStr); //AES加密
+	CString AESDecrypt(CString AESKey,CString SourceStr); //AES解密
 	CString CStringToBinary(CString SourceMsg); //将CString类型的数据转换成二进制表示
 	CString BinaryToCString(CString SourceMsg); //将二进制表示的数据转换成CString
 	CString HexStrToBinStr(CString HexStr); //十六进制字符串转二进制字符串
