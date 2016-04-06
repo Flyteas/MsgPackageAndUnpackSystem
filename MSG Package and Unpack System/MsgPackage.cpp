@@ -60,8 +60,8 @@ CString MsgPackage::MsgPackageApplication(CString SourceMsg) //应用层封装方法
 {
 	CString PackagedMsg;
 	PackagedMsg = "HTTP/1.1" + '|' + SourceMsg; //APP头信息
-
-	return SourceMsg;
+	PackagedMsg = this->AESEncrypt("1234567890123456",PackagedMsg);
+	return PackagedMsg;
 }
 
 CString MsgPackage::MsgPackageTransport(CString SourceMsg) //传输层封装方法
@@ -92,7 +92,14 @@ CString MsgPackage::MsgPackagePhysical(CString SourceMsg) //物理层封装方法
 
 CString MsgPackage::MsgUnpackApplication(CString SourceMsg) //应用层解封装方法
 {
-	return SourceMsg;
+	CString UnpackedMsg;
+	UnpackedMsg = this->AESDecrypt("1234567890123456",SourceMsg);
+	if(UnpackedMsg.Mid(0,UnpackedMsg.Find('|')) != "HTTP/1.1")
+	{
+		this->AddMsgReceiveDetails("应用层解封装出错");
+	}
+	UnpackedMsg = UnpackedMsg.Mid(UnpackedMsg.Find('|'));
+	return UnpackedMsg;
 }
 
 CString MsgPackage::MsgUnpackTransport(CString SourceMsg) //传输层解封装方法
@@ -168,29 +175,50 @@ CString MsgPackage::AESEncrypt(CString AESKey,CString SourceStr) //AES加密
 	}
 	CryptoPP::ECB_Mode<CryptoPP::AES>::Encryption ECBEncryption(AESKeyByte,CryptoPP::AES::DEFAULT_KEYLENGTH);
 	CryptoPP::StringSource(SourceStr,true,new CryptoPP::StreamTransformationFilter(ECBEncryption,new CryptoPP::StringSink(EncryptedStr)));
-	for(int i=0;i<EncryptedStr.size();i++)     //转换成HEX格式
+	/*for(int i=0;i<EncryptedStr.size();i++)     //转换成HEX格式
 	{  
 		char HexChar[3] = {0};  
 		sprintf_s(HexChar,"%02X",static_cast<byte>(EncryptedStr[i]));  
 		EncryptedStrHex += HexChar;  
-	}
-	CryptoPP::HexEncoder HexEncoderObj;
+	}*/
+	CryptoPP::HexEncoder HexEncoderObj; //Hex编码器
 	EncryptedStrByte = (byte*)EncryptedStr.c_str();
-	HexEncoderObj.Put(EncryptedStrByte,sizeof(*EncryptedStrByte));
+	HexEncoderObj.Put(EncryptedStrByte,EncryptedStr.length());
 	HexEncoderObj.MessageEnd();
-	/* size = HexEncoderObj.MaxRetrievable();
-if(size)
-{
-    encoded.resize(size);		
-    encoder.Get((byte*)encoded.data(), encoded.size());
-}*/
-
+	if(HexEncoderObj.MaxRetrievable()>0)
+	{
+		EncryptedStrHex.resize(HexEncoderObj.MaxRetrievable());		
+		HexEncoderObj.Get((byte*)EncryptedStrHex.data(),EncryptedStrHex.size()); //转换成HEX编码
+	}
 	EncryptedResult.Format("%s",EncryptedStrHex);
+	return EncryptedResult;
 }
 
-CString MsgPackage::AESDecrypt(CString AESKey,CString SourceStr) //AES解密
+CString MsgPackage::AESDecrypt(CString AESKey,CString SourceStrHex) //AES解密
 {
-	
+	std::string SourceStr;
+	std::string DecryptedStr;
+	CString DecryptedResult;
+	byte AESKeyByte[CryptoPP::AES::DEFAULT_KEYLENGTH];
+	byte *EncryptedStrByte;
+
+	CryptoPP::HexDecoder HexDecoderObj; //Hex解码器
+	HexDecoderObj.Put((byte*)SourceStrHex.GetBuffer(),SourceStrHex.GetLength());
+	HexDecoderObj.MessageEnd();
+	if(HexDecoderObj.MaxRetrievable()&&HexDecoderObj.MaxRetrievable() <= SIZE_MAX)
+	{
+		SourceStr.resize(HexDecoderObj.MaxRetrievable());		
+		HexDecoderObj.Get((byte*)SourceStr.data(), SourceStr.size());
+	}
+	SourceStrHex.ReleaseBuffer();
+	for (int i=0;i<CryptoPP::AES::DEFAULT_KEYLENGTH;i++) 
+	{ 
+		AESKeyByte[i] = AESKey.GetAt(i); 
+	}
+	CryptoPP::ECB_Mode<CryptoPP::AES>::Decryption ECBDecryption(AESKeyByte,CryptoPP::AES::DEFAULT_KEYLENGTH);
+	CryptoPP::StringSource(SourceStr,true,new CryptoPP::StreamTransformationFilter(ECBDecryption,new CryptoPP::StringSink(DecryptedStr)));
+	DecryptedResult.Format("%s",DecryptedStr);
+	return DecryptedResult;
 }
 
 CString MsgPackage::CStringToBinary(CString SourceMsg) //将CString类型的数据转换成二进制表示
