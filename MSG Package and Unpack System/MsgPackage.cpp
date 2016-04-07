@@ -166,7 +166,6 @@ CString MsgPackage::AESEncrypt(CString AESKey,CString SourceStr) //AES加密
 {
 	std::string EncryptedStr;
 	std::string EncryptedStrHex;
-	CString EncryptedResult;
 	byte AESKeyByte[CryptoPP::AES::DEFAULT_KEYLENGTH];
 	byte *EncryptedStrByte;
 	for (int i=0;i<CryptoPP::AES::DEFAULT_KEYLENGTH;i++) 
@@ -190,7 +189,7 @@ CString MsgPackage::AESEncrypt(CString AESKey,CString SourceStr) //AES加密
 		EncryptedStrHex.resize(HexEncoderObj.MaxRetrievable());		
 		HexEncoderObj.Get((byte*)EncryptedStrHex.data(),EncryptedStrHex.size()); //转换成HEX编码
 	}
-	EncryptedResult.Format("%s",EncryptedStrHex);
+	CString EncryptedResult(EncryptedStrHex.c_str());
 	return EncryptedResult;
 }
 
