@@ -244,37 +244,6 @@ void CMSGPackageandUnpackSystemDlg::OnBnClickedListenBtn() //¼àÌý°´Å¥
 
 void CMSGPackageandUnpackSystemDlg::OnBnClickedMsgsendBtn() //·¢ËÍ°´Å¥
 {
-	/*CString aa,bb,cc;
-	char* s;
-	char* t;
-	aa = "°¡1";
-	s = (LPSTR)aa.GetBuffer();
-    int i=0;
-    while (1) {
-        if (0==s[i]) break;
-        bb.Format(bb+"%02X",(unsigned char)s[i]);
-        i++;
-    }
-
-	MessageBox(bb);
-
-	t = (char*) malloc(sizeof(char)*3);
-    i=0;
-	unsigned int v;
-	int j=0;
-    for(i=0;j<bb.GetLength();i++)
-	{
-		v = strtol(bb.Mid(j,2),NULL,16);
-        t[i]=(char)v;
-		j=j+2;
-    }
-	t[i]=0;
-	CString f(t);
-    MessageBox(f);
-	CString ss,aa;
-	ss = "00001111";
-	aa = this->MsgTransportObj->MsgPackageObj->BinaryToCString(ss);
-	MessageBox(aa);*/
 	UpdateData();
 	if(this->MsgSendContent.IsEmpty()) //Èç¹û·¢ËÍÄÚÈÝÎª¿Õ
 	{

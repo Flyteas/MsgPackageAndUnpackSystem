@@ -59,19 +59,24 @@ bool MsgPackage::UnpackMessage(CString SourceMsg) //解封装数据
 CString MsgPackage::MsgPackageApplication(CString SourceMsg) //应用层封装方法
 {
 	CString PackagedMsg;
-	PackagedMsg = "HTTP/1.1" + '|' + SourceMsg; //APP头信息
-	PackagedMsg = this->AESEncrypt("1234567890123456",PackagedMsg);
+	PackagedMsg = "HTTP/1.1|" + SourceMsg; //APP头信息
 	return PackagedMsg;
 }
 
 CString MsgPackage::MsgPackageTransport(CString SourceMsg) //传输层封装方法
 {
-	return SourceMsg;
+	CString PackagedMsg;
+	PackagedMsg = "Port|";
+	PackagedMsg = "TCP|" + PackagedMsg;
+	PackagedMsg += SourceMsg; 
+	return PackagedMsg;
 }
 
 CString MsgPackage::MsgPackageNetwork(CString SourceMsg) //网络层封装方法
 {
-	return SourceMsg;
+	CString PackagedMsg;
+	PackagedMsg = "IP|" + SourceMsg;
+	return PackagedMsg;
 }
 
 CString MsgPackage::MsgPackageDatalink(CString SourceMsg) //数据链路层封装方法
@@ -79,7 +84,9 @@ CString MsgPackage::MsgPackageDatalink(CString SourceMsg) //数据链路层封装方法
 	CString PackagedMsg;
 	CString CRC32Value;
 	CRC32Value.Format("%X",this->CRC32(SourceMsg)); //计算CRC32值，大写16进制
-	PackagedMsg = SourceMsg + "|" + CRC32Value;
+	PackagedMsg = CRC32Value + "|";
+	PackagedMsg = "MAC|" + PackagedMsg;
+	PackagedMsg += SourceMsg;
 	return PackagedMsg;
 }
 
@@ -93,34 +100,63 @@ CString MsgPackage::MsgPackagePhysical(CString SourceMsg) //物理层封装方法
 CString MsgPackage::MsgUnpackApplication(CString SourceMsg) //应用层解封装方法
 {
 	CString UnpackedMsg;
-	UnpackedMsg = this->AESDecrypt("1234567890123456",SourceMsg);
+	UnpackedMsg = SourceMsg;
 	if(UnpackedMsg.Mid(0,UnpackedMsg.Find('|')) != "HTTP/1.1")
 	{
 		this->AddMsgReceiveDetails("应用层解封装出错");
 	}
-	UnpackedMsg = UnpackedMsg.Mid(UnpackedMsg.Find('|'));
+	UnpackedMsg = UnpackedMsg.Mid(UnpackedMsg.Find('|')+1);
 	return UnpackedMsg;
 }
 
 CString MsgPackage::MsgUnpackTransport(CString SourceMsg) //传输层解封装方法
 {
-	return SourceMsg;
+	CString UnpackedMsg;
+	UnpackedMsg = SourceMsg;
+	if(UnpackedMsg.Mid(0,UnpackedMsg.Find('|')) != "TCP")
+	{
+		this->AddMsgReceiveDetails("传输层解封装出错");
+	}
+	UnpackedMsg = UnpackedMsg.Mid(UnpackedMsg.Find('|')+1);
+	if(UnpackedMsg.Mid(0,UnpackedMsg.Find('|')) != "Port")
+	{
+		this->AddMsgReceiveDetails("传输层解封装出错");
+	}
+	UnpackedMsg = UnpackedMsg.Mid(UnpackedMsg.Find('|')+1);
+	return UnpackedMsg;
 }
 
 CString MsgPackage::MsgUnpackNetwork(CString SourceMsg) //网络层解封装方法
 {
-	return SourceMsg;
+	CString UnpackedMsg;
+	UnpackedMsg = SourceMsg;
+	if(UnpackedMsg.Mid(0,UnpackedMsg.Find('|')) != "IP")
+	{
+		this->AddMsgReceiveDetails("网络层解封装出错");
+	}
+	UnpackedMsg = UnpackedMsg.Mid(UnpackedMsg.Find('|')+1);
+	return UnpackedMsg;
 }
 
 CString MsgPackage::MsgUnpackDatalink(CString SourceMsg) //数据链路层解封装方法
 {
 	CString UnpackedMsg;
 	unsigned int CRC32Vaule;
-	UnpackedMsg = SourceMsg.Mid(0,SourceMsg.Find('|')); //包数据段
-	CRC32Vaule = strtoul(SourceMsg.Mid(SourceMsg.Find('|')+1),NULL,16); //CRC32数据段,十六进制,转换成int无符号类型
+	UnpackedMsg = SourceMsg;
+	if(UnpackedMsg.Mid(0,UnpackedMsg.Find('|')) != "MAC")
+	{
+		this->AddMsgReceiveDetails("数据链路层解封装出错");
+	}
+	UnpackedMsg = UnpackedMsg.Mid(UnpackedMsg.Find('|')+1);
+	CRC32Vaule = strtoul(UnpackedMsg.Mid(0,UnpackedMsg.Find('|')),NULL,16); //CRC32数据段,十六进制,转换成int无符号类型
+	UnpackedMsg = UnpackedMsg.Mid(UnpackedMsg.Find('|')+1); //包数据段
 	if(this->CRC32(UnpackedMsg) != CRC32Vaule) //CRC32校验失败
 	{
 		this->AddMsgReceiveDetails("CRC32 校验失败");
+	}
+	else
+	{
+		this->AddMsgReceiveDetails("CRC32 校验通过");
 	}
 	return UnpackedMsg;
 }
@@ -174,12 +210,6 @@ CString MsgPackage::AESEncrypt(CString AESKey,CString SourceStr) //AES加密
 	}
 	CryptoPP::ECB_Mode<CryptoPP::AES>::Encryption ECBEncryption(AESKeyByte,CryptoPP::AES::DEFAULT_KEYLENGTH);
 	CryptoPP::StringSource(SourceStr,true,new CryptoPP::StreamTransformationFilter(ECBEncryption,new CryptoPP::StringSink(EncryptedStr)));
-	/*for(int i=0;i<EncryptedStr.size();i++)     //转换成HEX格式
-	{  
-		char HexChar[3] = {0};  
-		sprintf_s(HexChar,"%02X",static_cast<byte>(EncryptedStr[i]));  
-		EncryptedStrHex += HexChar;  
-	}*/
 	CryptoPP::HexEncoder HexEncoderObj; //Hex编码器
 	EncryptedStrByte = (byte*)EncryptedStr.c_str();
 	HexEncoderObj.Put(EncryptedStrByte,EncryptedStr.length());
@@ -199,7 +229,6 @@ CString MsgPackage::AESDecrypt(CString AESKey,CString SourceStrHex) //AES解密
 	std::string DecryptedStr;
 	CString DecryptedResult;
 	byte AESKeyByte[CryptoPP::AES::DEFAULT_KEYLENGTH];
-	byte *EncryptedStrByte;
 
 	CryptoPP::HexDecoder HexDecoderObj; //Hex解码器
 	HexDecoderObj.Put((byte*)SourceStrHex.GetBuffer(),SourceStrHex.GetLength());
